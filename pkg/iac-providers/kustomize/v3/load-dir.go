@@ -2,6 +2,7 @@ package kustomizev3
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	k8sv1 "github.com/accurics/terrascan/pkg/iac-providers/kubernetes/v1"
@@ -43,7 +44,7 @@ func (k *KustomizeV3) LoadIacDir(absRootDir string) (output.AllResourceConfigs, 
 	yamlkustomizeobj, err := utils.ReadYamlFile(filepath.Join(absRootDir, kustomizeFileName))
 
 	if len(yamlkustomizeobj) == 0 {
-		err := errors.New("unable to read any kustomization file in the directory")
+		err = fmt.Errorf("unable to read any kustomization file in the directory : %v", err)
 		zap.S().Error("error while searching for iac files", zap.String("root dir", absRootDir), zap.Error(err))
 		return allResourcesConfig, err
 	}
