@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-package tfv12
+package tfv14
 
 import (
 	"bytes"
@@ -31,33 +31,33 @@ func TestLoadIacFile(t *testing.T) {
 	table := []struct {
 		name     string
 		filePath string
-		tfv12    TfV12
+		tfV14    tfV14
 		want     output.AllResourceConfigs
 		wantErr  error
 	}{
 		{
 			name:     "invalid filepath",
 			filePath: "not-there",
-			tfv12:    TfV12{},
+			tfV14:    tfV14{},
 			wantErr:  errLoadConfigFile,
 		},
 		{
 			name:     "empty config",
 			filePath: "./testdata/testfile",
-			tfv12:    TfV12{},
+			tfV14:    tfV14{},
 			wantErr:  nil,
 		},
 		{
 			name:     "invalid config",
 			filePath: "./testdata/empty.tf",
-			tfv12:    TfV12{},
+			tfV14:    tfV14{},
 			wantErr:  errLoadConfigFile,
 		},
 	}
 
 	for _, tt := range table {
 		t.Run(tt.name, func(t *testing.T) {
-			_, gotErr := tt.tfv12.LoadIacFile(tt.filePath)
+			_, gotErr := tt.tfV14.LoadIacFile(tt.filePath)
 			if !reflect.DeepEqual(gotErr, tt.wantErr) {
 				t.Errorf("unexpected error; gotErr: '%v', wantErr: '%v'", gotErr, tt.wantErr)
 			}
@@ -68,28 +68,28 @@ func TestLoadIacFile(t *testing.T) {
 		name         string
 		tfConfigFile string
 		tfJSONFile   string
-		tfv12        TfV12
+		tfV14        tfV14
 		wantErr      error
 	}{
 		{
 			name:         "config1",
 			tfConfigFile: "./testdata/tfconfigs/config1.tf",
 			tfJSONFile:   "./testdata/tfjson/config1.json",
-			tfv12:        TfV12{},
+			tfV14:        tfV14{},
 			wantErr:      nil,
 		},
 		{
 			name:         "dummyconfig",
 			tfConfigFile: "./testdata/dummyconfig/dummyconfig.tf",
 			tfJSONFile:   "./testdata/tfjson/dummyconfig.json",
-			tfv12:        TfV12{},
+			tfV14:        tfV14{},
 			wantErr:      nil,
 		},
 	}
 
 	for _, tt := range table2 {
 		t.Run(tt.name, func(t *testing.T) {
-			got, gotErr := tt.tfv12.LoadIacFile(tt.tfConfigFile)
+			got, gotErr := tt.tfV14.LoadIacFile(tt.tfConfigFile)
 			if !reflect.DeepEqual(gotErr, tt.wantErr) {
 				t.Errorf("unexpected error; gotErr: '%v', wantErr: '%v'", gotErr, tt.wantErr)
 			}
