@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
-	hclConfigs "github.com/hashicorp/terraform/configs"
+	hclConfigs "github.com/hashicorp/terraform12/configs"
 	"go.uber.org/zap"
 
 	"github.com/accurics/terrascan/pkg/iac-providers/output"

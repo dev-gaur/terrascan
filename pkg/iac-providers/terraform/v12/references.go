@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"regexp"
 
-	hclConfigs "github.com/hashicorp/terraform/configs"
+	hclConfigs "github.com/hashicorp/terraform12/configs"
 )
 
 var (

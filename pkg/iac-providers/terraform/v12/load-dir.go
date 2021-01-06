@@ -25,7 +25,7 @@ import (
 	"github.com/accurics/terrascan/pkg/utils"
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
-	hclConfigs "github.com/hashicorp/terraform/configs"
+	hclConfigs "github.com/hashicorp/terraform12/configs"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )

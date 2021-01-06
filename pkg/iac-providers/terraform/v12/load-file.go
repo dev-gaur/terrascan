@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 
 	"github.com/accurics/terrascan/pkg/iac-providers/output"
-	hclConfigs "github.com/hashicorp/terraform/configs"
+	hclConfigs "github.com/hashicorp/terraform12/configs"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
