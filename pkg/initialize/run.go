@@ -61,6 +61,12 @@ func DownloadPolicies() error {
 
 	tempPath := filepath.Join(os.TempDir(), "terrascan")
 
+	// ensure a clear tempPath
+	if err := os.RemoveAll(tempPath); err != nil {
+		zap.S().Errorf("failed to clean the existing temporary directory at '%s'. error: '%v'", tempPath, err)
+		return err
+	}
+
 	// clone the repo
 	r, err := git.PlainClone(tempPath, false, &git.CloneOptions{
 		URL: repoURL,
@@ -96,7 +102,17 @@ func DownloadPolicies() error {
 		return err
 	}
 
-	os.RemoveAll(basePath)
+	// cleaning the existing cached policies at basePath
+	if err = os.RemoveAll(basePath); err != nil {
+		zap.S().Errorf("failed to clean the existing policy repository at '%s'. error: '%v'", basePath, err)
+		return err
+	}
 
-	return os.Rename(tempPath, basePath)
+	// move the freshly cloned repo from tempPath to basePath
+	if err = os.Rename(tempPath, basePath); err != nil {
+		zap.S().Errorf("failed to move the freshly cloned repository from '%s' to '%s'. error: '%v'", tempPath, basePath, err)
+		return err
+	}
+
+	return nil
 }
