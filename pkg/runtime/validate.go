@@ -36,6 +36,7 @@ var (
 	errIacNotSupported      = fmt.Errorf("iac type or version not supported")
 	errCloudNotSupported    = fmt.Errorf("cloud type not supported")
 	errSeverityNotSupported = fmt.Errorf("severity level not supported")
+	errCategoryNotSupported = fmt.Errorf("category not supported")
 )
 
 // ValidateInputs validates the inputs to the executor object
@@ -122,7 +123,7 @@ func (e *Executor) ValidateInputs() error {
 	zap.S().Debugf("using policy path %v", e.policyPath)
 
 	if len(e.categories) > 0 && !utils.ValidateCategoryInput(e.categories) {
-		return errSeverityNotSupported
+		return errCategoryNotSupported
 	}
 	zap.S().Debugf("using categories %v", e.categories)
 
