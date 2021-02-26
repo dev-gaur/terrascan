@@ -28,16 +28,11 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
-var (
-	basePath       = config.GetPolicyRepoPath()
-	basePolicyPath = config.GetPolicyBasePath()
-	repoURL        = config.GetPolicyRepoURL()
-	branch         = config.GetPolicyBranch()
-)
-
 // Run initializes terrascan if not done already
 func Run(isScanCmd bool) error {
 	zap.S().Debug("initializing terrascan")
+
+	basePolicyPath := config.GetPolicyRepoPath()
 
 	// check if policy paths exist
 	if path, err := os.Stat(basePolicyPath); err == nil && path.IsDir() {
@@ -45,7 +40,6 @@ func Run(isScanCmd bool) error {
 			return nil
 		}
 	}
-
 	// download policies
 	if err := DownloadPolicies(); err != nil {
 		return err
@@ -57,6 +51,10 @@ func Run(isScanCmd bool) error {
 
 // DownloadPolicies clones the policies to a local folder
 func DownloadPolicies() error {
+	basePath := config.GetPolicyBasePath()
+	repoURL := config.GetPolicyRepoURL()
+	branch := config.GetPolicyBranch()
+
 	zap.S().Debug("downloading policies")
 
 	tempPath, err := ioutil.TempDir("", "terrascan-")

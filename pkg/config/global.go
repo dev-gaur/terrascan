@@ -23,25 +23,15 @@ import (
 )
 
 const (
-	policyRepoURL    = "https://github.com/accurics/terrascan.git"
-	policyBranch     = "master"
-	configEnvvarName = "TERRASCAN_CONFIG"
-	policyConfigKey  = "policy"
+	policyRepoURL   = "https://github.com/accurics/terrascan.git"
+	policyBranch    = "master"
+	policyConfigKey = "policy"
 )
 
 var (
 	policyRepoPath = os.Getenv("HOME") + "/.terrascan"
 	policyBasePath = policyRepoPath + "/pkg/policies/opa/rego"
 )
-
-func init() {
-	// If the user specifies a config file in TERRASCAN_CONFIG,
-	// overwrite the defaults with the values from that file.
-	// Retain the defaults for members not specified in the file.
-	if err := LoadGlobalConfig(os.Getenv(configEnvvarName)); err != nil {
-		zap.S().Error("error while loading global config", zap.Error(err))
-	}
-}
 
 // LoadGlobalConfig loads policy configuration from specified configFile
 // into var Global.Policy.  Members of Global.Policy that are not specified
@@ -56,9 +46,11 @@ func LoadGlobalConfig(configFile string) error {
 	}
 
 	if configFile == "" {
-		zap.S().Debug("global config env variable is not specified")
+		zap.S().Debug("configFile is not specified for loading global config")
 		return nil
 	}
+
+	zap.S().Debugf("loading global config from: %s", configFile)
 
 	configReader, err := NewTerrascanConfigReader(configFile)
 	if err != nil {
