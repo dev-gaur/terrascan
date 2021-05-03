@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: terrahook
+  namespace: terrascan
+spec:
+  type: LoadBalancer
+  selector:
+    app: terrahook
+  ports:
+    - name: webhook
+      port: 443
+      nodePort: 30037
+      targetPort: 9010

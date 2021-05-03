@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terrahook
+  namespace: terrascan
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: terrahook
+  template:
+    metadata:
+      labels:
+        app: terrahook
+    spec:
+      initContainers:
+      - name: git-cloner
+        image: alpine/git
+        args:
+        - clone
+        - --single-branch
+        - --branch=master
+        - https://github.com/accurics/terrascan.git
+        - /data
+        volumeMounts:
+        - mountPath: /data
+          name: terrascan-data-sync
+      containers:
+        - name: terrascan-server
+          image: devanggaur7/terrascan:webhook
+          imagePullPolicy: Always
+          command:
+          - terrascan
+          args:
+          - "server"
+          - "--cert-path"
+          - "/etc/certs/cert"
+          - "--key-path"
+          - "/etc/certs/key"
+          - "-l"
+          - "debug"
+          - "-c"
+          - "/etc/config/configfile"
+          #args: ["server", "--cert-path" "/etc/data/server.crt", "--key-path", "/etc/data/server.key", "-c", "etc/data/config.toml"]
+          env:
+          - name: "K8S_WEBHOOK_API_KEY"
+            value: terrakey
+          volumeMounts:
+          - name: cert-volume
+            mountPath: /etc/certs
+          - name: config-volume
+            mountPath: /etc/config
+          - name: terrascan-data-sync
+            mountPath: /home/terrascan/.terrascan
+      volumes:
+        - name: cert-volume
+          secret:
+            secretName: certs
+        - name: terrascan-data-sync
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: terrascan-config

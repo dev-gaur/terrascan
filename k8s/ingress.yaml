@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: app-ingress
+  namespace: terrascan
+spec:
+  rules:
+    - host: test.akomljen.com
+      http:
+        paths:
+          - backend:
+              serviceName: terrahook
+              servicePort: 443
+            path: /terrahook
