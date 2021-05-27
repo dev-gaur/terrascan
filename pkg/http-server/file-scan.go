@@ -40,14 +40,15 @@ func (g *APIHandler) scanFile(w http.ResponseWriter, r *http.Request) {
 	// get url params
 	params := mux.Vars(r)
 	var (
-		iacType    = params["iac"]
-		iacVersion = params["iacVersion"]
-		cloudType  = strings.Split(params["cloud"], ",")
-		scanRules  = []string{}
-		skipRules  = []string{}
-		configOnly = false
-		showPassed = false
-		categories = []string{}
+		iacType     = params["iac"]
+		iacVersion  = params["iacVersion"]
+		cloudType   = strings.Split(params["cloud"], ",")
+		scanRules   = []string{}
+		skipRules   = []string{}
+		configOnly  = false
+		outputSarif = false
+		showPassed  = false
+		categories  = []string{}
 	)
 
 	// parse multipart form, 10 << 20 specifies maximum upload of 10 MB files
@@ -120,6 +121,23 @@ func (g *APIHandler) scanFile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// outputSarif is a boolean that decides if the output should be in sarif format or plain json format.
+	sarifValue := r.FormValue("output_sarif")
+	if sarifValue != "" {
+		outputSarif, err = strconv.ParseBool(sarifValue)
+		if err != nil {
+			errMsg := fmt.Sprintf("error while reading 'sarif' value. error: '%v'", err)
+			zap.S().Error(errMsg)
+			apiErrorResponse(w, errMsg, http.StatusBadRequest)
+			return
+		}
+	}
+
+	if configOnly && outputSarif {
+		handleSarifValidation(w)
+		return
+	}
+
 	// read show_passed from the form data
 	showPassedValue := r.FormValue("show_passed")
 	if showPassedValue != "" {
@@ -183,16 +201,19 @@ func (g *APIHandler) scanFile(w http.ResponseWriter, r *http.Request) {
 		output = normalized.Violations
 	}
 
-	j, err := json.MarshalIndent(output, "", "  ")
-	if err != nil {
-		errMsg := fmt.Sprintf("failed to create JSON. error: '%v'", err)
-		zap.S().Error(errMsg)
-		apiErrorResponse(w, errMsg, http.StatusInternalServerError)
-		return
+	if outputSarif {
+		apiSarifResponse(w, output, http.StatusOK)
+	} else {
+		j, err := json.MarshalIndent(output, "", "  ")
+		if err != nil {
+			errMsg := fmt.Sprintf("failed to create JSON. error: '%v'", err)
+			zap.S().Error(errMsg)
+			apiErrorResponse(w, errMsg, http.StatusInternalServerError)
+			return
+		}
+		// return that we have successfully uploaded our file!
+		apiResponse(w, string(j), http.StatusOK)
 	}
-
-	// return that we have successfully uploaded our file!
-	apiResponse(w, string(j), http.StatusOK)
 }
 
 // getPolicyPathFromConfig returns the policy path from config

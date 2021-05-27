@@ -38,6 +38,7 @@ type scanRemoteRepoReq struct {
 	RemoteType   string   `json:"remote_type"`
 	RemoteURL    string   `json:"remote_url"`
 	ConfigOnly   bool     `json:"config_only"`
+	OutputSarif	 bool	  `json:"output_sarif"`
 	ScanRules    []string `json:"scan_rules"`
 	SkipRules    []string `json:"skip_rules"`
 	Categories   []string `json:"categories"`
@@ -70,13 +71,17 @@ func (g *APIHandler) scanRemoteRepo(w http.ResponseWriter, r *http.Request) {
 	}
 	zap.S().Debugf("scanning remote repository request: %+v", s)
 
+	if s.OutputSarif && s.ConfigOnly {
+		handleSarifValidation(w)
+		return
+	}
+
 	// scan remote repo
 	s.d = downloader.NewDownloader()
 	var results interface{}
 	var isAdmissionDenied bool
 	if g.test {
 		results, isAdmissionDenied, err = s.ScanRemoteRepo(iacType, iacVersion, cloudType, []string{"./testdata/testpolicies"})
-
 	} else {
 		results, isAdmissionDenied, err = s.ScanRemoteRepo(iacType, iacVersion, cloudType, getPolicyPathFromConfig())
 	}
@@ -85,22 +90,30 @@ func (g *APIHandler) scanRemoteRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// convert results into JSON
-	j, err := json.MarshalIndent(results, "", "  ")
-	if err != nil {
-		errMsg := fmt.Sprintf("failed to create JSON. error: '%v'", err)
-		zap.S().Error(errMsg)
-		apiErrorResponse(w, errMsg, http.StatusInternalServerError)
-		return
-	}
+	if s.OutputSarif {
+		code := http.StatusOK
+		if isAdmissionDenied {
+			code = http.StatusForbidden
+		}
+		apiSarifResponse(w, results, code)
+	} else {
+		// convert results into JSON
+		j, err := json.MarshalIndent(results, "", "  ")
+		if err != nil {
+			errMsg := fmt.Sprintf("failed to create JSON. error: '%v'", err)
+			zap.S().Error(errMsg)
+			apiErrorResponse(w, errMsg, http.StatusInternalServerError)
+			return
+		}
 
-	// return with results
-	// if result contain violations denied by admission controller return 403 status code
-	if isAdmissionDenied {
-		apiResponse(w, string(j), http.StatusForbidden)
-		return
+		// return with results
+		// if result contain violations denied by admission controller return 403 status code
+		if isAdmissionDenied {
+			apiResponse(w, string(j), http.StatusForbidden)
+			return
+		}
+		apiResponse(w, string(j), http.StatusOK)
 	}
-	apiResponse(w, string(j), http.StatusOK)
 }
 
 // ScanRemoteRepo is the actual method where a remote repo is downloaded and
