@@ -8,6 +8,22 @@ before:
     - go generate ./...
 builds:
   - binary: terrascan
+    id: terrascan_darwin
+    main: ./cmd/terrascan/main.go
+    ldflags: -s -w
+    env:
+      - CGO_ENABLED=1
+      - CC=o64-clang
+    flags:
+      - -buildmode
+      - exe
+      - -tags
+      - extended
+    goos:
+      - darwin
+    goarch:
+      - amd64
+  - binary: terrascan
     id: terrascan_linux_amd64
     main: ./cmd/terrascan/main.go
     ldflags: -s -w -extldflags=-static
@@ -37,22 +53,6 @@ builds:
       - linux
     goarch:
       - 386
-  - binary: terrascan
-    id: terrascan_darwin
-    main: ./cmd/terrascan/main.go
-    ldflags: -s -w
-    env:
-      - CGO_ENABLED=1
-      - CC=o64-clang
-    flags:
-      - -buildmode
-      - exe
-      - -tags
-      - extended
-    goos:
-      - darwin
-    goarch:
-      - amd64
   - binary: terrascan
     id: terrascan_windows
     main: ./cmd/terrascan/main.go
