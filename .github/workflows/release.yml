@@ -6,7 +6,7 @@ on:
       - '*'
 
 jobs:
-  release:
+  release-windows-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,6 +17,45 @@ jobs:
         run: docker run -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --rm -v $GITHUB_WORKSPACE:/go/src/github.com/accurics/terrascan -w /go/src/github.com/accurics/terrascan neilotoole/xcgo bash -c "apt update; apt install -y gcc-multilib; goreleaser release --rm-dist -f .goreleaser.yml"
       - name: List dist tree
         run: tree dist
-# arm64 build disabled for now while we work through some package conflicts between gcc-multilib and gcc-aarch64-linux-gnu
-#      - name: Run GoReleaser for arm64
-#        run: docker run -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --rm -v $GITHUB_WORKSPACE:/go/src/github.com/accurics/terrascan -w /go/src/github.com/accurics/terrascan neilotoole/xcgo bash -c "apt update; apt install -y gcc-aarch64-linux-gnu; rm -rf /go/src/github.com/accurics/terrascan/dist ; goreleaser release --rm-dist -f .goreleaser-arm64.yml"
+
+  release-darwin:
+#    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+#      - name: Import Code-Signing Certificates
+#        uses: Apple-Actions/import-codesign-certs@v1
+#        with:
+          # The certificates in a PKCS12 file encoded as a base64 string
+#          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+          # The password used to import the PKCS12 file.
+#          p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+
+      - name: Install gon via HomeBrew for code signing and app notarization
+        run: |
+          brew tap mitchellh/gon
+          brew install mitchellh/gon/gon
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        env:
+          #apple id username
+          AC_USERNAME: ${{ secrets.AC_USERNAME }}
+          #apple app specific password
+          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            distribution: goreleaser
+            version: latest
+            args: release --rm-dist -f .goreleaser_darwin.yml
+
+      - name: Print gon version
+        run: |
+          gon version
