@@ -16,32 +16,7 @@ jobs:
       - name: Run Main GoReleaser
         run: docker run -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --rm -v $GITHUB_WORKSPACE:/go/src/github.com/accurics/terrascan -w /go/src/github.com/accurics/terrascan neilotoole/xcgo bash -c "apt update; apt install -y gcc-multilib; goreleaser release --rm-dist -f .goreleaser.yml"
       - name: List bin tree
-        run: tree bin
-      - name: List release tree
-        run: tree release
+        run: tree dist
 # arm64 build disabled for now while we work through some package conflicts between gcc-multilib and gcc-aarch64-linux-gnu
 #      - name: Run GoReleaser for arm64
 #        run: docker run -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --rm -v $GITHUB_WORKSPACE:/go/src/github.com/accurics/terrascan -w /go/src/github.com/accurics/terrascan neilotoole/xcgo bash -c "apt update; apt install -y gcc-aarch64-linux-gnu; rm -rf /go/src/github.com/accurics/terrascan/dist ; goreleaser release --rm-dist -f .goreleaser-arm64.yml"
-
-  # push image to Docker Hub
-  push:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Terrascan
-      uses: actions/checkout@v1
-
-    - name: Build Terrascan docker image
-      run: make docker-build
-
-    - name: Login to docker hub
-      run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u accurics --password-stdin
-
-    - name: Push Terrascan latest tag docker image
-      run: make docker-push-latest-tag
-
-    - name: Build terrascan_atlantis docker image
-      run: make atlantis-docker-build
-
-    - name: Push terrascan_atlantis latest tag docker image
-      run: make atlantis-docker-push-latest-tag
