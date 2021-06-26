@@ -35,6 +35,7 @@ func (k *K8sV1) LoadIacFile(absFilePath string) (allResourcesConfig output.AllRe
 	}
 
 	for _, doc := range iacDocuments {
+		zap.S().Infof("DOC: %s", string(doc.Data))
 		var config *output.ResourceConfig
 		config, err = k.Normalize(doc)
 		if err != nil {
